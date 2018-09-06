@@ -43,7 +43,8 @@ class GenerateEnquiryRecord(StreamCallback):
 	   "number_of_audults" :  random.choice([1,2,3,4]),
 	   "number_of_childern" : random.choice([0,1,2]),
 	   "paid_price"	: quoted_rate[calendar.day_name[date_of_enquiry.weekday()]],
-	   "customer_id"	: random.randint(1000,5000)
+	   "customer_id"	: random.randint(1000,5000),
+	   "__time"	: date_of_enquiry.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]+'Z'
 	}
 
 	newObj["timestamp"]=javasystem.currentTimeMillis()
