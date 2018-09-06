@@ -1,0 +1,58 @@
+import json
+import java.io
+import random
+import time
+from org.apache.commons.io import IOUtils
+from java.nio.charset import StandardCharsets
+from org.apache.nifi.processor.io import StreamCallback
+from java.lang import System as javasystem
+from datetime import datetime
+from datetime import timedelta
+import calendar
+
+class GenerateEnquiryRecord(StreamCallback):
+  def __init__(self):
+        pass
+  def process(self, inputStream, outputStream):
+    	text = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
+		
+	quoted_rate = {'Monday':90, 'Tuesday':90, 'Wednesday':80, 'Thursday': 100, 'Friday':120, 'Saturday':150, 'Sunday':90}	
+	
+	stime = time.mktime(time.strptime("01-01-2018", "%m-%d-%Y"))
+	etime = time.mktime(time.strptime("08-10-2018", "%m-%d-%Y"))
+	ptime = stime + random.random() * (etime - stime)
+	str_date_of_enquiry = time.strftime('%m-%d-%Y', time.localtime(ptime))
+	
+	date_of_enquiry = datetime.strptime(str_date_of_enquiry, "%m-%d-%Y")
+	
+	date_of_enquiry_time = long(time.mktime(date_of_enquiry.timetuple()) * 1000)
+	
+	check_in = date_of_enquiry + timedelta(days=5)
+	
+	check_out = check_in + timedelta(days=4)
+	
+	check_in_day_of_week = calendar.day_name[check_in.weekday()]
+	
+		 
+    	newObj = {
+	   "metro" : str(random.choice(["New York","Atlata","Boston","San Jose","Baltimore","Chicago","Dallas","Orlando","Washington DC","Hustom","Las Vegas","Seattle"])),
+	   "property" : str(random.choice(["Hilton","Double Tree","Waldrof Astoria","Curio","Hilton Garden Inn","Hampton"])),
+	   "date_of_enquiry" : date_of_enquiry.strftime("%m-%d-%Y"),
+	   "date_of_enquiry_timestamp" : date_of_enquiry_time,
+	   "check_in": check_in.strftime("%m-%d-%Y"),
+	   "check_out": check_out.strftime("%m-%d-%Y"),
+	   "number_rooms" : random.choice([1,2,3]),
+	   "number_of_audults" :  random.choice([1,2,3,4]),
+	   "number_of_childern" : random.choice([0,1,2]),
+	   "quoted_price"	:	quoted_rate[calendar.day_name[date_of_enquiry.weekday()]]
+	}
+
+	newObj["timestamp"]=javasystem.currentTimeMillis()
+
+	outputStream.write(bytearray(json.dumps(newObj, indent=4).encode('utf-8'))) 
+
+flowFile = session.get()
+
+if (flowFile != None):
+    flowFile = session.write(flowFile,GenerateEnquiryRecord())
+    session.transfer(flowFile, REL_SUCCESS)
